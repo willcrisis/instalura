@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import Foto from './Foto';
+import React, {Component} from "react";
+import Foto from "./Foto";
 
 export default class Timeline extends Component {
 
@@ -9,7 +9,12 @@ export default class Timeline extends Component {
     }
 
     componentDidMount() {
-        fetch(`http://localhost:8080/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('token')}`)
+        let url = `http://localhost:8080/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('token')}`;
+        if (this.props.login) {
+            url = `http://localhost:8080/api/public/fotos/${this.props.login}`;
+        }
+
+        fetch(url)
             .then(response => response.json())
             .then(fotos => {
                 this.setState({fotos: fotos});
