@@ -1,10 +1,10 @@
 import React, {Component} from "react";
 import {Link} from "react-router-dom";
+import PubSub from "pubsub-js";
 
 class FotoComentario extends Component {
     constructor(props) {
         super(props);
-        console.log(props);
         this.state = {likeada: props.foto.likeada};
     }
 
@@ -16,8 +16,9 @@ class FotoComentario extends Component {
                 }
                 throw new Error('Erro ao dar like na foto.');
             })
-            .then(response => {
+            .then(liker => {
                 this.setState({likeada: !this.state.likeada});
+                PubSub.publish('foto-like', {fotoId: this.props.foto.id, liker});
             });
     }
 
@@ -36,12 +37,28 @@ class FotoComentario extends Component {
 }
 
 class FotoInfo extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {likers: this.props.foto.likers};
+
+        PubSub.subscribe('foto-like', (topic, info) => {
+            if (info.fotoId === this.props.foto.id) {
+                const encontrado = this.state.likers.find(liker => liker.login === info.liker.login);
+                if (encontrado) {
+                    this.setState({likers: this.state.likers.filter(liker => liker.login !== info.liker.login)});
+                } else {
+                    this.setState({likers: this.state.likers.concat(info.liker)});
+                }
+            }
+        })
+    }
+
     render() {
         return (
             <div className="foto-in fo">
                 <div className="foto-info-likes">
                     {
-                        this.props.foto.likers.map(liker => {
+                        this.state.likers.map(liker => {
                             return (<Link to={`/timeline/${liker.login}`} key={liker.login} href="#">{liker.login},</Link>);
                         })
                     }
