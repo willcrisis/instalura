@@ -2,10 +2,29 @@ import React, {Component} from "react";
 import {Link} from "react-router-dom";
 
 class FotoComentario extends Component {
+    constructor(props) {
+        super(props);
+        console.log(props);
+        this.state = {likeada: props.foto.likeada};
+    }
+
+    like() {
+        fetch(`http://localhost:8080/api/fotos/${this.props.foto.id}/like?X-AUTH-TOKEN=${localStorage.getItem('token')}`, {method: 'POST'})
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao dar like na foto.');
+            })
+            .then(response => {
+                this.setState({likeada: !this.state.likeada});
+            });
+    }
+
     render() {
         return (
             <section className="fotoAtualizacoes">
-                <a href="#" className="fotoAtualizacoes-like">Likar</a>
+                <a onClick={this.like.bind(this)} className={this.state.likeada ? 'fotoAtualizacoes-like-ativo' : 'fotoAtualizacoes-like'}>Likar</a>
                 <form className="fotoAtualizacoes-form">
                     <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo"/>
                     <input type="submit" value="Comentar!" className="fotoAtualizacoes-form-submit"/>
@@ -32,7 +51,7 @@ class FotoInfo extends Component {
                 </div>
 
                 <p className="foto-info-legenda">
-                    <Link to={`/timeline/${this.props.foto.loginUsuario}`} className="foto-info-autor">{this.props.foto.loginUsuario} </Link>
+                    <a className="foto-info-autor">{this.props.foto.loginUsuario} </a>
                     {this.props.foto.comentario}
                 </p>
 
@@ -81,7 +100,7 @@ export default class Foto extends Component {
                 <img alt="foto" className="foto-src"
                      src={this.props.foto.urlFoto}/>
                 <FotoInfo foto={this.props.foto}/>
-                <FotoComentario/>
+                <FotoComentario foto={this.props.foto}/>
             </div>
         );
     }
