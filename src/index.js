@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import Login from "./components/Login";
+import Logout from "./components/Logout";
 import PrivateRoute from "./PrivateRoute";
 import registerServiceWorker from "./registerServiceWorker";
 import "./css/reset.css";
@@ -13,7 +14,8 @@ ReactDOM.render(
     <Router>
         <Switch>
             <Route path="/" exact component={Login}/>
-            <PrivateRoute path="/timeline" component={App} />
+            <PrivateRoute path="/timeline/:login?" component={App} />
+            <PrivateRoute path="/logout" component={Logout}/>
         </Switch>
     </Router>
     , document.getElementById('root'));
