@@ -22,12 +22,38 @@ class FotoComentario extends Component {
             });
     }
 
+    comentar(evento) {
+        evento.preventDefault();
+        fetch(`http://localhost:8080/api/fotos/${this.props.foto.id}/comment?X-AUTH-TOKEN=${localStorage.getItem('token')}`,
+            {
+                method: 'POST',
+                body: JSON.stringify({texto: this.comentario.value}),
+                headers: new Headers({
+                    'Content-Type': 'application/json'
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao comentar');
+            })
+            .then(comentario => {
+                PubSub.publish('foto-comentario', {fotoId: this.props.foto.id, comentario});
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+
     render() {
         return (
             <section className="fotoAtualizacoes">
-                <a onClick={this.like.bind(this)} className={this.state.likeada ? 'fotoAtualizacoes-like-ativo' : 'fotoAtualizacoes-like'}>Likar</a>
-                <form className="fotoAtualizacoes-form">
-                    <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo"/>
+                <a onClick={this.like.bind(this)}
+                   className={this.state.likeada ? 'fotoAtualizacoes-like-ativo' : 'fotoAtualizacoes-like'}>Likar</a>
+                <form className="fotoAtualizacoes-form" onSubmit={this.comentar.bind(this)}>
+                    <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo"
+                           ref={input => this.comentario = input}/>
                     <input type="submit" value="Comentar!" className="fotoAtualizacoes-form-submit"/>
                 </form>
 
@@ -39,7 +65,7 @@ class FotoComentario extends Component {
 class FotoInfo extends Component {
     constructor(props) {
         super(props);
-        this.state = {likers: this.props.foto.likers};
+        this.state = {likers: this.props.foto.likers, comentarios: this.props.foto.comentarios};
 
         PubSub.subscribe('foto-like', (topic, info) => {
             if (info.fotoId === this.props.foto.id) {
@@ -50,7 +76,18 @@ class FotoInfo extends Component {
                     this.setState({likers: this.state.likers.concat(info.liker)});
                 }
             }
-        })
+        });
+
+        PubSub.subscribe('foto-comentario', (topic, info) => {
+            if (info.fotoId === this.props.foto.id) {
+                const encontrado = this.state.comentarios.find(comentario => comentario.id === info.comentario.id);
+                if (encontrado) {
+                    this.setState({comentarios: this.state.comentarios.filter(comentario => comentario.id !== info.comentario.id)});
+                } else {
+                    this.setState({comentarios: this.state.comentarios.concat(info.comentario)});
+                }
+            }
+        });
     }
 
     render() {
@@ -59,7 +96,8 @@ class FotoInfo extends Component {
                 <div className="foto-info-likes">
                     {
                         this.state.likers.map(liker => {
-                            return (<Link to={`/timeline/${liker.login}`} key={liker.login} href="#">{liker.login},</Link>);
+                            return (
+                                <Link to={`/timeline/${liker.login}`} key={liker.login} href="#">{liker.login},</Link>);
                         })
                     }
 
@@ -74,10 +112,11 @@ class FotoInfo extends Component {
 
                 <ul className="foto-info-comentarios">
                     {
-                        this.props.foto.comentarios.map(comentario => {
-                            return(
+                        this.state.comentarios.map(comentario => {
+                            return (
                                 <li className="comentario" key={comentario.id}>
-                                    <Link to={`/timeline/${comentario.login}`} className="foto-info-autor">{comentario.login} </Link>
+                                    <Link to={`/timeline/${comentario.login}`}
+                                          className="foto-info-autor">{comentario.login} </Link>
                                     {comentario.texto}
                                 </li>
                             );
