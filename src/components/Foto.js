@@ -63,39 +63,12 @@ class FotoComentario extends Component {
 }
 
 class FotoInfo extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {likers: this.props.foto.likers, comentarios: this.props.foto.comentarios};
-
-        PubSub.subscribe('foto-like', (topic, info) => {
-            if (info.fotoId === this.props.foto.id) {
-                const encontrado = this.state.likers.find(liker => liker.login === info.liker.login);
-                if (encontrado) {
-                    this.setState({likers: this.state.likers.filter(liker => liker.login !== info.liker.login)});
-                } else {
-                    this.setState({likers: this.state.likers.concat(info.liker)});
-                }
-            }
-        });
-
-        PubSub.subscribe('foto-comentario', (topic, info) => {
-            if (info.fotoId === this.props.foto.id) {
-                const encontrado = this.state.comentarios.find(comentario => comentario.id === info.comentario.id);
-                if (encontrado) {
-                    this.setState({comentarios: this.state.comentarios.filter(comentario => comentario.id !== info.comentario.id)});
-                } else {
-                    this.setState({comentarios: this.state.comentarios.concat(info.comentario)});
-                }
-            }
-        });
-    }
-
     render() {
         return (
             <div className="foto-in fo">
                 <div className="foto-info-likes">
                     {
-                        this.state.likers.map(liker => {
+                        this.props.foto.likers.map(liker => {
                             return (
                                 <Link to={`/timeline/${liker.login}`} key={liker.login} href="#">{liker.login},</Link>);
                         })
@@ -112,7 +85,7 @@ class FotoInfo extends Component {
 
                 <ul className="foto-info-comentarios">
                     {
-                        this.state.comentarios.map(comentario => {
+                        this.props.foto.comentarios.map(comentario => {
                             return (
                                 <li className="comentario" key={comentario.id}>
                                     <Link to={`/timeline/${comentario.login}`}
