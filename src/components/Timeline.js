@@ -13,6 +13,7 @@ export default class Timeline extends Component {
     componentWillMount() {
         PubSub.subscribe('foto-like', (topic, info) => {
             const fotoExistente = this.state.fotos.find(foto => foto.id === info.fotoId);
+            fotoExistente.likeada = !fotoExistente.likeada;
 
             const encontrado = fotoExistente.likers.find(liker => liker.login === info.liker.login);
             if (encontrado) {
@@ -24,14 +25,15 @@ export default class Timeline extends Component {
         });
 
         PubSub.subscribe('foto-comentario', (topic, info) => {
-            if (info.fotoId === this.props.foto.id) {
-                const encontrado = this.state.comentarios.find(comentario => comentario.id === info.comentario.id);
-                if (encontrado) {
-                    this.setState({comentarios: this.state.comentarios.filter(comentario => comentario.id !== info.comentario.id)});
-                } else {
-                    this.setState({comentarios: this.state.comentarios.concat(info.comentario)});
-                }
+            const fotoExistente = this.state.fotos.find(foto => foto.id === info.fotoId);
+
+            const encontrado = fotoExistente.comentarios.find(comentario => comentario.id === info.comentario.id);
+            if (encontrado) {
+                fotoExistente.comentarios.splice(fotoExistente.comentarios.indexOf(encontrado), 1);
+            } else {
+                fotoExistente.comentarios.push(info.comentario);
             }
+            this.setState({fotos: this.state.fotos});
         });
 
         PubSub.subscribe('timeline', (topic, fotos) => {
@@ -63,13 +65,49 @@ export default class Timeline extends Component {
         }
     }
 
+    like(fotoId) {
+        fetch(`http://localhost:8080/api/fotos/${fotoId}/like?X-AUTH-TOKEN=${localStorage.getItem('token')}`, {method: 'POST'})
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao dar like na foto.');
+            })
+            .then(liker => {
+                PubSub.publish('foto-like', {fotoId: fotoId, liker});
+            });
+    }
+
+    comentar(fotoId, comentario) {
+        fetch(`http://localhost:8080/api/fotos/${fotoId}/comment?X-AUTH-TOKEN=${localStorage.getItem('token')}`,
+            {
+                method: 'POST',
+                body: JSON.stringify({texto: comentario}),
+                headers: new Headers({
+                    'Content-Type': 'application/json'
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao comentar');
+            })
+            .then(comentario => {
+                PubSub.publish('foto-comentario', {fotoId: fotoId, comentario});
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+
     render() {
         return (
             <div className="fotos container">
                 {
                     this.state.fotos.map(foto => {
                         return (
-                            <Foto key={foto.id} foto={foto}/>
+                            <Foto key={foto.id} foto={foto} like={this.like} comentar={this.comentar} />
                         );
                     })
                 }

@@ -1,56 +1,24 @@
 import React, {Component} from "react";
 import {Link} from "react-router-dom";
-import PubSub from "pubsub-js";
 
 class FotoComentario extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {likeada: props.foto.likeada};
-    }
 
-    like() {
-        fetch(`http://localhost:8080/api/fotos/${this.props.foto.id}/like?X-AUTH-TOKEN=${localStorage.getItem('token')}`, {method: 'POST'})
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Erro ao dar like na foto.');
-            })
-            .then(liker => {
-                this.setState({likeada: !this.state.likeada});
-                PubSub.publish('foto-like', {fotoId: this.props.foto.id, liker});
-            });
+    like(evento) {
+        evento.preventDefault();
+        this.props.like(this.props.foto.id);
     }
 
     comentar(evento) {
         evento.preventDefault();
-        fetch(`http://localhost:8080/api/fotos/${this.props.foto.id}/comment?X-AUTH-TOKEN=${localStorage.getItem('token')}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({texto: this.comentario.value}),
-                headers: new Headers({
-                    'Content-Type': 'application/json'
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Erro ao comentar');
-            })
-            .then(comentario => {
-                PubSub.publish('foto-comentario', {fotoId: this.props.foto.id, comentario});
-            })
-            .catch(error => {
-                console.log(error);
-            });
+        this.props.comentar(this.props.foto.id, this.comentario.value);
+        this.comentario.value = '';
     }
 
     render() {
         return (
             <section className="fotoAtualizacoes">
                 <a onClick={this.like.bind(this)}
-                   className={this.state.likeada ? 'fotoAtualizacoes-like-ativo' : 'fotoAtualizacoes-like'}>Likar</a>
+                   className={this.props.foto.likeada ? 'fotoAtualizacoes-like-ativo' : 'fotoAtualizacoes-like'}>Likar</a>
                 <form className="fotoAtualizacoes-form" onSubmit={this.comentar.bind(this)}>
                     <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo"
                            ref={input => this.comentario = input}/>
@@ -129,7 +97,7 @@ export default class Foto extends Component {
                 <img alt="foto" className="foto-src"
                      src={this.props.foto.urlFoto}/>
                 <FotoInfo foto={this.props.foto}/>
-                <FotoComentario foto={this.props.foto}/>
+                <FotoComentario foto={this.props.foto} like={this.props.like} comentar={this.props.comentar}/>
             </div>
         );
     }
