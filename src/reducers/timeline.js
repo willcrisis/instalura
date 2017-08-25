@@ -1,26 +1,41 @@
-export function timeline(state = [], action) {
+import {List} from "immutable";
+
+function updateFoto(lista, fotoId, callback) {
+    const fotoAntiga = lista.find(foto => foto.id === fotoId);
+
+    const props = callback(fotoAntiga);
+
+    const fotoNova = Object.assign({}, fotoAntiga, props);
+
+    const index = lista.findIndex(foto => foto.id === fotoId);
+
+    return lista.set(index, fotoNova);
+}
+
+export function timeline(state = new List(), action) {
     if (action.type === 'LIST') {
-        return action.fotos;
+        return new List(action.fotos);
     }
 
     if (action.type === 'COMMENT') {
-        const fotoExistente = state.find(foto => foto.id === action.fotoId);
-        fotoExistente.comentarios.push(action.comentario);
-
-        return state;
+        return updateFoto(state, action.fotoId, fotoAntiga => {
+            return {comentarios: fotoAntiga.comentarios.concat(action.comentario)};
+        });
     }
 
     if (action.type === 'LIKE') {
-        const fotoExistente = state.find(foto => foto.id === action.fotoId);
-        fotoExistente.likeada = !fotoExistente.likeada;
+        return updateFoto(state, action.fotoId, fotoAntiga => {
+            const liker = action.liker;
+            const encontrado = fotoAntiga.likers.find(likerFoto => likerFoto.login === liker.login);
+            let likers;
+            if (encontrado) {
+                likers = fotoAntiga.likers.filter(likerFoto => likerFoto.login !== liker.login);
+            } else {
+                likers = fotoAntiga.likers.concat(liker);
+            }
 
-        const liker = action.liker;
-        const encontrado = fotoExistente.likers.find(likerFoto => likerFoto.login === liker.login);
-        if (encontrado) {
-            fotoExistente.likers = fotoExistente.likers.filter(likerFoto => likerFoto.login !== liker.login);
-        } else {
-            fotoExistente.likers.push(liker);
-        }
+            return {likeada: !fotoAntiga.likeada, likers}
+        });
     }
 
     return state;
