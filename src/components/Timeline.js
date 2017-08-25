@@ -1,5 +1,6 @@
 import React, {Component} from "react";
 import Foto from "./Foto";
+import TimelineApi from "../logic/TimelineApi";
 
 export default class Timeline extends Component {
 
@@ -10,7 +11,7 @@ export default class Timeline extends Component {
     }
 
     componentWillMount() {
-        this.props.store.subscribe(fotos => this.setState({fotos}));
+        this.props.store.subscribe(fotos => this.setState({fotos: this.props.store.getState()}));
     }
 
     componentDidMount() {
@@ -18,7 +19,7 @@ export default class Timeline extends Component {
     }
 
     carregarFotos() {
-        this.props.store.list(this.login);
+        this.props.store.dispatch(TimelineApi.list(this.login));
     }
 
     componentWillReceiveProps(nextProps) {
@@ -29,11 +30,11 @@ export default class Timeline extends Component {
     }
 
     like(fotoId) {
-        this.props.store.like(fotoId);
+        this.props.store.dispatch(TimelineApi.like(fotoId));
     }
 
     comentar(fotoId, comentario) {
-        this.props.store.comment(fotoId, comentario);
+        this.props.store.dispatch(TimelineApi.comment(fotoId, comentario));
     }
 
     render() {
