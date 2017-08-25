@@ -1,6 +1,5 @@
 import React, {Component} from "react";
 import Foto from "./Foto";
-import TimelineLogic from "../logic/TimelineLogic";
 
 export default class Timeline extends Component {
 
@@ -8,11 +7,10 @@ export default class Timeline extends Component {
         super(props);
         this.state = {fotos: []};
         this.login = this.props.login;
-        this.timelineLogic = new TimelineLogic([]);
     }
 
     componentWillMount() {
-        this.timelineLogic.subscribe(fotos => this.setState({fotos}));
+        this.props.store.subscribe(fotos => this.setState({fotos}));
     }
 
     componentDidMount() {
@@ -20,7 +18,7 @@ export default class Timeline extends Component {
     }
 
     carregarFotos() {
-        this.timelineLogic.list(this.login);
+        this.props.store.list(this.login);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -31,11 +29,11 @@ export default class Timeline extends Component {
     }
 
     like(fotoId) {
-        this.timelineLogic.like(fotoId);
+        this.props.store.like(fotoId);
     }
 
     comentar(fotoId, comentario) {
-        this.timelineLogic.comment(fotoId, comentario);
+        this.props.store.comment(fotoId, comentario);
     }
 
     render() {
