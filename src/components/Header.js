@@ -1,20 +1,12 @@
 import React, {Component} from "react";
 import TimelineApi from "../logic/TimelineApi";
+import {connect} from "react-redux";
 
-export default class Header extends Component {
-
-    constructor() {
-        super();
-        this.state = {msg: ''};
-    }
-
-    componentDidMount() {
-        this.props.store.subscribe(() => this.setState({msg: this.props.store.getState().header}));
-    }
+class Header extends Component {
 
     pesquisar(evento) {
         evento.preventDefault();
-        this.props.store.dispatch(TimelineApi.list(this.pesquisa.value));
+        this.props.pesquisar(this.pesquisa.value);
     }
 
     render() {
@@ -29,7 +21,7 @@ export default class Header extends Component {
                     <input type="submit" value="Buscar" className="header-busca-submit"/>
                 </form>
 
-                <span>{this.state.msg}</span>
+                <span>{this.props.msg}</span>
 
                 <nav>
                     <ul className="header-nav">
@@ -46,3 +38,21 @@ export default class Header extends Component {
         );
     }
 }
+
+const mapStateToProps = state => {
+  return {
+      msg: state.header
+  }
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        pesquisar: termo => {
+          dispatch(TimelineApi.list(termo));
+        }
+    }
+};
+
+const HeaderComponent = connect(mapStateToProps, mapDispatchToProps)(Header);
+
+export default HeaderComponent;

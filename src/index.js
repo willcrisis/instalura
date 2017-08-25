@@ -9,14 +9,24 @@ import "./css/reset.css";
 import "./css/timeline.css";
 import "./css/login.css";
 import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import {createStore, applyMiddleware, combineReducers} from "redux";
+import thunkMiddleware from "redux-thunk";
+import {timeline} from "./reducers/timeline";
+import {header} from "./reducers/header";
+import {Provider} from "react-redux";
+
+const reducers = combineReducers({timeline, header});
+const store = createStore(reducers, applyMiddleware(thunkMiddleware));
 
 ReactDOM.render(
-    <Router>
-        <Switch>
-            <Route path="/" exact component={Login}/>
-            <PrivateRoute path="/timeline/:login?" component={App} />
-            <PrivateRoute path="/logout" component={Logout}/>
-        </Switch>
-    </Router>
+    <Provider store={store}>
+        <Router>
+            <Switch>
+                <Route path="/" exact component={Login}/>
+                <PrivateRoute path="/timeline/:login?" component={App}/>
+                <PrivateRoute path="/logout" component={Logout}/>
+            </Switch>
+        </Router>
+    </Provider>
     , document.getElementById('root'));
 registerServiceWorker();
