@@ -9,3 +9,7 @@ export function comment(fotoId, comentario) {
 export function like(fotoId, liker) {
     return {type: 'LIKE', fotoId, liker};
 }
+
+export function msg(msg) {
+    return {type: 'MSG', msg}
+}

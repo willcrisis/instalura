@@ -1,13 +1,20 @@
 import React, {Component} from "react";
-import PubSub from "pubsub-js";
+import TimelineApi from "../logic/TimelineApi";
 
 export default class Header extends Component {
 
+    constructor() {
+        super();
+        this.state = {msg: ''};
+    }
+
+    componentDidMount() {
+        this.props.store.subscribe(() => this.setState({msg: this.props.store.getState().header}));
+    }
+
     pesquisar(evento) {
         evento.preventDefault();
-        fetch(`http://localhost:8080/api/public/fotos/${this.pesquisa.value}`)
-            .then(response => response.json())
-            .then(fotos => PubSub.publish('timeline', fotos));
+        this.props.store.dispatch(TimelineApi.list(this.pesquisa.value));
     }
 
     render() {
@@ -22,6 +29,7 @@ export default class Header extends Component {
                     <input type="submit" value="Buscar" className="header-busca-submit"/>
                 </form>
 
+                <span>{this.state.msg}</span>
 
                 <nav>
                     <ul className="header-nav">

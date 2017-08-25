@@ -1,4 +1,4 @@
-import {list, comment, like} from "../actions/actionCreator";
+import {list, comment, like, msg} from "../actions/actionCreator";
 
 export default class TimelineApi {
 
@@ -51,6 +51,12 @@ export default class TimelineApi {
                 .then(response => response.json())
                 .then(fotos => {
                     dispatch(list(fotos));
+
+                    if (fotos.length === 0) {
+                        dispatch(msg('Nenhum resultado encontrado.'));
+                    } else {
+                        dispatch(msg(''));
+                    }
                     return fotos;
                 });
         };
