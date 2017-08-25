@@ -1,3 +1,5 @@
+import {list, comment, like} from "../actions/actionCreator";
+
 export default class TimelineApi {
 
     static like(fotoId) {
@@ -10,7 +12,7 @@ export default class TimelineApi {
                     throw new Error('Erro ao dar like na foto.');
                 })
                 .then(liker => {
-                    dispatch({type: 'LIKE', fotoId, liker});
+                    dispatch(like(fotoId, liker));
                     return liker;
                 });
         }
@@ -33,7 +35,7 @@ export default class TimelineApi {
                     throw new Error('Erro ao comment');
                 })
                 .then(comentario => {
-                    dispatch({type: 'COMMENT', fotoId, comentario});
+                    dispatch(comment(fotoId, comentario));
                     return comentario;
                 });
         }
@@ -48,7 +50,7 @@ export default class TimelineApi {
             fetch(url)
                 .then(response => response.json())
                 .then(fotos => {
-                    dispatch({type: 'LIST', fotos});
+                    dispatch(list(fotos));
                     return fotos;
                 });
         };
